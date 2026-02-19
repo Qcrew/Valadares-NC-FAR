@@ -1,0 +1,1 @@
+Run g1_plot_wigner_data.py, g2_build_map.py, and g3_apply_map_get_densitymatrix.py consequently cell by cell in the interactive regime (those files share local variables).
