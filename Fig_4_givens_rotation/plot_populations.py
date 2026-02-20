@@ -83,9 +83,9 @@ for state_ in perfect_states_vector:
     perfect_populations.append(get_populations(input_density_matrix=state_, projectors=projectors))
 
 # Retrieving the simulated states populations
-filenames_sim = ["reconstructed_1to4_theta0_T22700_T115000_cavT1_500000.npz", "reconstructed_1to4_thetapi4_T22700_T115000_cavT1_500000.npz",
-                      "reconstructed_1to4_thetapi2_T22700_T115000_cavT1_500000.npz", "reconstructed_1to4_thetapi_T22700_T115000_cavT1_500000.npz"]
-foldername = "simulated_density_matrices/"
+filenames_sim = ["reconstructed_theta0_T22700_T115000_cavT1_500000.npz", "reconstructed_thetapi4_T22700_T115000_cavT1_500000.npz",
+                      "reconstructed_thetapi2_T22700_T115000_cavT1_500000.npz", "reconstructed_thetapi_T22700_T115000_cavT1_500000.npz"]
+foldername = "simulated_density_matrices/with_coherent_errors/"
 simulated_populations = []
 for _filename in filenames_sim:
     simulated_populations.append(get_pops_from_simulation(filename_=foldername+_filename))
@@ -94,24 +94,50 @@ for _filename in filenames_sim:
 indices = np.arange(len(projectors))
 CM = 1 / 2.54
 colours = np.array(["#bc343a", "#f19f3c", "#88b742", "#3E9491", "#7c1954"])
+#%%
+_filename = "reconstructed_theta0_T22700_T115000_cavT1_500000.npz"
+filename_=foldername+_filename
+read_file = np.load(filename_, allow_pickle=True)
+read_rho = qutip.Qobj(read_file['rho'])
+read_rho
+#%%
+qutip.fidelity(read_rho, qutip.basis(7, 1))**2
 
 #%% Plotting the stacked bar charts of the populations
-# fig = plt.figure(figsize=(2.435*CM, 2.435*CM))
-fig = plt.figure(figsize=(5*CM, 5*CM))
+fig = plt.figure(figsize=(2.435*CM, 2.435*CM))
+# fig = plt.figure(figsize=(5*CM, 5*CM))
 ax = plt.gca()
 plot_index = 3
 target_indices = [1, 4]
 non_target_indices = [0, 2, 3]
-tiny_colours_list = np.array([colours[2], colours[4], colours[1]])
+tiny_colours_list = np.array([colours[2], "none", colours[1]])
+tiny_edgecolour_list = np.array([None, colours[4], None])
 for ii in indices:
     perfect_pop = perfect_populations[plot_index][ii]
     sim_pop = simulated_populations[plot_index][ii]
     exp_pop = populations[plot_index][ii]
     tiny_pop_list = np.array([exp_pop, sim_pop, perfect_pop])
     for jj in np.argsort(tiny_pop_list)[::-1]:
-        ax.bar(ii, tiny_pop_list[jj], color=tiny_colours_list[jj], edgecolor=None, alpha=1.0)
+        ax.bar(ii, tiny_pop_list[jj], color=tiny_colours_list[jj], edgecolor=tiny_edgecolour_list[jj], alpha=1.0)
 ax.set(ylim=[0, 1.05], xticks=[2], yticks=[0.5])
 ax.tick_params(axis='x', labelbottom=False)
 ax.tick_params(axis='y', labelleft=False)
 # ax.legend()
-fig.savefig("Figures/Stacked_bar_charts/Stacked_state_{}.pdf".format(plot_index+1), bbox_inches="tight", transparent=True)
+fig.savefig("Figures/Stacked_bar_charts/with_coherent_errors/Stacked_state_{}.pdf".format(plot_index+1), bbox_inches="tight", transparent=True)
+#%% Plotting the simulation with the outline only
+fig = plt.figure(figsize=(2.435*CM, 2.435*CM))
+# fig = plt.figure(figsize=(5*CM, 5*CM))
+ax = plt.gca()
+plot_index = 3
+target_indices = [1, 4]
+non_target_indices = [0, 2, 3]
+tiny_colours_list = np.array([colours[2], "none", colours[1]])
+tiny_edgecolour_list = np.array([None, colours[4], None])
+ax.bar(indices, perfect_populations[plot_index], color=colours[1], edgecolor=None, alpha=1.0)
+ax.bar(indices, populations[plot_index], color=colours[2], edgecolor=None, alpha=1.0)
+ax.bar(indices, simulated_populations[plot_index], color="none", edgecolor=colours[4], alpha=1.0)
+ax.set(ylim=[0, 1.05], xticks=[2], yticks=[0.5])
+ax.tick_params(axis='x', labelbottom=False)
+ax.tick_params(axis='y', labelleft=False)
+# ax.legend()
+fig.savefig("Figures/Stacked_bar_charts/with_coherent_errors_edgecolour/Stacked_state_{}.pdf".format(plot_index+1), bbox_inches="tight", transparent=True)
